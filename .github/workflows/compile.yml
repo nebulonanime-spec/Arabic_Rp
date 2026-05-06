@@ -7,6 +7,7 @@ on:
 jobs:
   compile:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -14,9 +15,13 @@ jobs:
         run: |
           wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
-          # تأكدنا من المسار الصحيح للملف التنفيذي
-          chmod +x bin/pawncc
-          echo "$(pwd)/bin" >> $GITHUB_PATH
+          
+          # عرض الملفات للتأكد
+          ls
+          
+          # إعطاء صلاحية وتشغيل الكومبايلر
+          chmod +x pawnc/bin/pawncc
+          echo "$(pwd)/pawnc/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
