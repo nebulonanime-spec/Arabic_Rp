@@ -1,7 +1,7 @@
 #include <a_samp>
 #include <sscanf2>
 #include <zcmd>
-#include <YSI_Storage/y_ini> // تم تعديل السلاش لتعمل على GitHub
+#include <YSI_Storage/y_ini> // تم تعديل السلاش ليتوافق مع نظام Linux في GitHub
 
 #define COLOR_GREEN 0x00FF00FF
 #define COLOR_RED   0xFF0000FF
@@ -16,7 +16,9 @@ enum pInfo {
 new PlayerInfo[MAX_PLAYERS][pInfo];
 
 main() {
-    print("Jordan RP - System Started");
+    print("----------------------------------");
+    print("  Jordan RP - System Fixed        ");
+    print("----------------------------------");
 }
 
 public OnGameModeInit() {
@@ -24,8 +26,6 @@ public OnGameModeInit() {
     AddPlayerClass(0, 1958.3783, 1343.1572, 15.3746, 270.0, 0, 0, 0, 0, 0, 0);
     return 1;
 }
-
-// --- إصلاح الدوال الناقصة ---
 
 public OnPlayerConnect(playerid) {
     new name[24], file[64];
@@ -40,7 +40,7 @@ public OnPlayerConnect(playerid) {
     return 1;
 }
 
-// دالة الحفظ اللي كانت ناقصة
+// دالة الحفظ (كانت ناقصة وتسبب خطأ في الصور)
 forward SavePlayer(playerid);
 public SavePlayer(playerid) {
     new name[24], file[64];
@@ -49,16 +49,14 @@ public SavePlayer(playerid) {
     
     new INI:f = INI_Open(file);
     if(f != INI_NO_FILE) {
-        INI_WriteString(f, "Password", PlayerInfo[playerid][pPassword]);
         INI_WriteInt(f, "Cash", PlayerInfo[playerid][pCash]);
-        INI_WriteInt(f, "Bank", PlayerInfo[playerid][pBank]);
         INI_WriteInt(f, "Level", PlayerInfo[playerid][pLevel]);
         INI_Close(f);
     }
     return 1;
 }
 
-// دالة التحميل اللي كانت ناقصة
+// دالة التحميل (كانت مفقودة في الهيكل الأصلي)
 forward LoadPlayer(playerid);
 public LoadPlayer(playerid) {
     new name[24], file[64];
@@ -72,9 +70,7 @@ public LoadPlayer(playerid) {
 
 forward LoadUser_Data(playerid, name[], value[]);
 public LoadUser_Data(playerid, name[], value[]) {
-    INI_String(name, "Password", PlayerInfo[playerid][pPassword], 65);
     INI_Int(name, "Cash", PlayerInfo[playerid][pCash]);
-    INI_Int(name, "Bank", PlayerInfo[playerid][pBank]);
     INI_Int(name, "Level", PlayerInfo[playerid][pLevel]);
     return 1;
 }
