@@ -30,7 +30,9 @@ jobs:
       - name: Compile
         run: |
           PAWNCC=$(pwd)/pawnc-3.10.10-linux/bin/pawncc
-          $PAWNCC rp_main.pwn -i$(pwd)/includes -i$(pwd)/pawnc-3.10.10-linux/include -o rp_main.amx
+          INC1=$(pwd)/includes
+          INC2=$(pwd)/pawnc-3.10.10-linux/include
+          $PAWNCC rp_main.pwn -i "$INC1" -i "$INC2" -o rp_main.amx
 
       - name: Upload AMX
         uses: actions/upload-artifact@v4
