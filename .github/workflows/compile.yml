@@ -10,15 +10,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Pawn Compiler
+      - name: Setup Pawn Compiler
         run: |
+          mkdir pawn_compiler
+          cd pawn_compiler
           wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
-          chmod +x pawnc-3.10.10-linux/bin/pawncc
+          chmod +x bin/pawncc
+          echo "$(pwd)/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
-          ./pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -irp_main -o rp_main.amx
+          pawncc rp_main.pwn -irp_main -o rp_main.amx
 
       - name: Upload AMX
         uses: actions/upload-artifact@v4
