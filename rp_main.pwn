@@ -287,7 +287,7 @@ public OnPlayerDeath(playerid, killerid, reason) {
         if(killerid != INVALID_PLAYER_ID && PlayerInfo[killerid][pLoggedIn]) {
             GivePlayerMoney2(killerid, dropped);
             new str[128];
-            format(str, sizeof(str), "[ مال ] حصلت على $%d من الاعب %s", dropped, PlayerInfo[playerid][pName]);
+            format(str, sizeof(str), "[ مال ] حص��ت على $%d من الاعب %s", dropped, PlayerInfo[playerid][pName]);
             SendClientMessage(killerid, COLOR_GOLD, str);
         }
     }
