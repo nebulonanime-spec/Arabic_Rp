@@ -6,6 +6,7 @@
 #include <a_samp>
 #include <sscanf2>
 #include <zcmd>
+#include <YSI_Storage\y_ini>
 
 // ============================================================
 // DEFINES
@@ -161,14 +162,6 @@ new FactionNames[6][] = {
 };
 
 // ============================================================
-// INCLUDES (sub-files)
-// ============================================================
-// In a real setup, you'd #include these:
-// #include "systems/login.pwn"
-// #include "systems/jobs.pwn"
-// #include "systems/vehicles.pwn"
-
-// ============================================================
 // FORWARD DECLARATIONS
 // ============================================================
 forward OnPlayerHungerUpdate();
@@ -196,26 +189,20 @@ public OnGameModeInit() {
     SetWorldTime(12);
     SetWeather(10);
 
-    // Add classes
     AddPlayerClass(0, SPAWN_X, SPAWN_Y, SPAWN_Z, 270.0, 0, 0, 0, 0, 0, 0);
 
-    // Create default vehicles
     CreateDefaultVehicles();
-
-    // Create checkpoints / markers
     CreateJobCheckpoints();
 
-    // Timers
-    Timer_Hunger = SetTimer("OnPlayerHungerUpdate", 60000, true);  // every 1 min
-    Timer_Salary = SetTimer("OnSalaryTick", 60000, true);           // every 1 min
-    Timer_Save   = SetTimer("OnAutoSave", 300000, true);            // every 5 mins
+    Timer_Hunger = SetTimer("OnPlayerHungerUpdate", 60000, true);
+    Timer_Salary = SetTimer("OnSalaryTick", 60000, true);
+    Timer_Save   = SetTimer("OnAutoSave", 300000, true);
 
     print("[RP] Server Ready!");
     return 1;
 }
 
 public OnGameModeExit() {
-    // Save all players
     for(new i = 0; i < MAX_PLAYERS; i++) {
         if(IsPlayerConnected(i) && PlayerInfo[i][pLoggedIn]) {
             SavePlayer(i);
@@ -228,7 +215,6 @@ public OnGameModeExit() {
 }
 
 public OnPlayerConnect(playerid) {
-    // Reset info
     PlayerInfo[playerid][pLoggedIn] = 0;
     PlayerInfo[playerid][pRegistered] = 0;
     PlayerInfo[playerid][pHealth] = 100;
@@ -239,10 +225,8 @@ public OnPlayerConnect(playerid) {
 
     GetPlayerName(playerid, PlayerInfo[playerid][pName], MAX_PLAYER_NAME);
 
-    // Create HUD
     CreatePlayerHUD(playerid);
 
-    // Show login dialog
     new str[128];
     format(str, sizeof(str), "مرحباً بك في السيرفر\nاسمك: %s\nاكتب كلمة المرور للدخول أو سجل إذا كنت جديداً", PlayerInfo[playerid][pName]);
     ShowPlayerDialog(playerid, 1, DIALOG_STYLE_PASSWORD, "تسجيل الدخول / التسجيل", str, "دخول", "خروج");
@@ -264,7 +248,6 @@ public OnPlayerSpawn(playerid) {
         return 1;
     }
 
-    // Restore position
     new Float:x = Float:PlayerInfo[playerid][pPosX];
     new Float:y = Float:PlayerInfo[playerid][pPosY];
     new Float:z = Float:PlayerInfo[playerid][pPosZ];
@@ -284,15 +267,12 @@ public OnPlayerSpawn(playerid) {
     SetPlayerArmour(playerid, float(PlayerInfo[playerid][pArmour]));
     SetPlayerSkin(playerid, PlayerInfo[playerid][pSkin]);
 
-    // If jailed
     if(PlayerInfo[playerid][pIsJailed]) {
         SetPlayerPos(playerid, 1600.0, -1700.0, 13.0);
         SetTimerEx("ReleasePlayer", PlayerInfo[playerid][pJailTime] * 1000, false, "i", playerid);
     }
 
-    // Give weapons based on job
     GiveJobWeapons(playerid);
-
     UpdatePlayerHUD(playerid);
     UpdatePlayerMoney(playerid);
 
@@ -301,7 +281,6 @@ public OnPlayerSpawn(playerid) {
 }
 
 public OnPlayerDeath(playerid, killerid, reason) {
-    // Drop money on death (10%)
     new dropped = PlayerInfo[playerid][pCash] / 10;
     if(dropped > 0) {
         PlayerInfo[playerid][pCash] -= dropped;
@@ -313,7 +292,6 @@ public OnPlayerDeath(playerid, killerid, reason) {
         }
     }
 
-    // Add wanted to killer if killed civilian
     if(killerid != INVALID_PLAYER_ID) {
         if(PlayerInfo[killerid][pJob] != JOB_POLICE) {
             PlayerInfo[killerid][pWanted]++;
@@ -322,7 +300,6 @@ public OnPlayerDeath(playerid, killerid, reason) {
         }
     }
 
-    // Reset health
     PlayerInfo[playerid][pHealth] = 100;
     PlayerInfo[playerid][pArmour] = 0;
     PlayerInfo[playerid][pHunger] = 60;
@@ -336,15 +313,11 @@ public OnPlayerDeath(playerid, killerid, reason) {
 
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]) {
     switch(dialogid) {
-        // Login / Register
         case 1: {
             if(!response) { Kick(playerid); return 1; }
-            // Check if registered (normally from DB)
-            // For demo: if file exists = registered
             new file[64];
             format(file, sizeof(file), "players/%s.ini", PlayerInfo[playerid][pName]);
             if(fexist(file)) {
-                // Verify password
                 LoadPlayer(playerid);
                 if(!strcmp(inputtext, PlayerInfo[playerid][pPassword], true)) {
                     PlayerInfo[playerid][pLoggedIn] = 1;
@@ -354,13 +327,11 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]) {
                     ShowPlayerDialog(playerid, 1, DIALOG_STYLE_PASSWORD, "كلمة المرور خاطئة", "كلمة المرور غلط! حاول مرة ثانية:", "دخول", "خروج");
                 }
             } else {
-                // New player - register
                 format(PlayerInfo[playerid][pPassword], 65, "%s", inputtext);
                 ShowPlayerDialog(playerid, 2, DIALOG_STYLE_LIST, "اختر وظيفتك الأولى",
                     "عاطل (بدون وظيفة)\nمزارع\nصياد\nعامل منجم\nسائق تاكسي", "اختر", "رجوع");
             }
         }
-        // Choose starting job
         case 2: {
             if(!response) {
                 ShowPlayerDialog(playerid, 1, DIALOG_STYLE_PASSWORD, "تسجيل الدخول", "ادخل كلمة مرور:", "دخول", "خروج");
@@ -383,7 +354,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]) {
             format(str, sizeof(str), "[ تسجيل ] مرحباً! وظيفتك: %s | بدأت بـ $%d", JobNames[PlayerInfo[playerid][pJob]], STARTING_MONEY);
             SendClientMessage(playerid, COLOR_GREEN, str);
         }
-        // Bank deposit
         case 10: {
             if(!response) return 1;
             new amount = strval(inputtext);
@@ -398,7 +368,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]) {
             format(str, sizeof(str), "[ بنك ] أودعت $%d. رصيدك: $%d", amount, PlayerInfo[playerid][pBank]);
             SendClientMessage(playerid, COLOR_GREEN, str);
         }
-        // Bank withdraw
         case 11: {
             if(!response) return 1;
             new amount = strval(inputtext);
@@ -413,7 +382,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]) {
             format(str, sizeof(str), "[ بنك ] سحبت $%d. رصيدك: $%d", amount, PlayerInfo[playerid][pBank]);
             SendClientMessage(playerid, COLOR_GREEN, str);
         }
-        // Choose skin
         case 20: {
             if(!response) return 1;
             new skins[6] = {0, 1, 2, 7, 8, 9};
@@ -432,14 +400,12 @@ public OnPlayerText(playerid, text[]) {
     new name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, name, sizeof(name));
 
-    // If masked
     if(PlayerInfo[playerid][pMasked]) {
         format(str, sizeof(str), "* شخص مقنع يقول: %s", text);
     } else {
         format(str, sizeof(str), "%s يقول: %s", name, text);
     }
 
-    // Send to nearby players (25 units)
     for(new i = 0; i < MAX_PLAYERS; i++) {
         if(IsPlayerConnected(i) && IsPlayerInRangeOfPoint(i, 25.0,
             GetPlayerPos2(playerid, 0), GetPlayerPos2(playerid, 1), GetPlayerPos2(playerid, 2))) {
@@ -485,7 +451,6 @@ public OnSalaryTick() {
         PlayerInfo[i][pHours]++;
         PlayerInfo[i][pExp] += 10;
 
-        // Level up every 1000 exp
         if(PlayerInfo[i][pExp] >= 1000 * PlayerInfo[i][pLevel]) {
             PlayerInfo[i][pLevel]++;
             PlayerInfo[i][pJobRank]++;
@@ -547,14 +512,14 @@ stock GiveJobWeapons(playerid) {
     ResetPlayerWeapons(playerid);
     switch(PlayerInfo[playerid][pJob]) {
         case JOB_POLICE: {
-            GivePlayerWeapon(playerid, 24, 100); // Deagle
-            GivePlayerWeapon(playerid, 3, 1);    // Nightstick
+            GivePlayerWeapon(playerid, 24, 100);
+            GivePlayerWeapon(playerid, 3, 1);
         }
         case JOB_MEDIC: {
-            GivePlayerWeapon(playerid, 1, 1);    // Brass Knuckles (medkit icon)
+            GivePlayerWeapon(playerid, 1, 1);
         }
         case JOB_MECHANIC: {
-            GivePlayerWeapon(playerid, 10, 1);   // Chainsaw (wrench-like)
+            GivePlayerWeapon(playerid, 10, 1);
         }
     }
 }
@@ -624,27 +589,17 @@ stock UpdatePlayerMoney(playerid) {
 // WORLD SETUP
 // ============================================================
 stock CreateDefaultVehicles() {
-    // Police cars
-    AddStaticVehicle(596, 1543.0, -1675.0, 13.0, 90.0, 0, 1);  // Police Car
+    AddStaticVehicle(596, 1543.0, -1675.0, 13.0, 90.0, 0, 1);
     AddStaticVehicle(596, 1550.0, -1675.0, 13.0, 90.0, 0, 1);
-
-    // Ambulance
     AddStaticVehicle(416, 1600.0, -1400.0, 13.0, 90.0, 3, 3);
-
-    // Taxis
     AddStaticVehicle(420, 1958.0, 1350.0, 15.0, 270.0, 6, 1);
     AddStaticVehicle(420, 1965.0, 1350.0, 15.0, 270.0, 6, 1);
-
-    // Trucks
     AddStaticVehicle(578, 2000.0, 1350.0, 15.0, 270.0, 1, 1);
-
-    // Civilian cars
     AddStaticVehicle(411, 1970.0, 1360.0, 15.0, 270.0, 0, 0);
     AddStaticVehicle(445, 1975.0, 1360.0, 15.0, 270.0, 0, 0);
 }
 
 stock CreateJobCheckpoints() {
-    // Job markers (using 3D labels)
     Create3DTextLabel("[ وظائف ]\nاضغط F للحصول على وظيفة", COLOR_YELLOW, 1958.0, 1343.0, 15.0, 20.0, 0);
     Create3DTextLabel("[ بنك ]\n/deposit /withdraw", COLOR_GREEN, 1000.0, -666.0, 13.0, 20.0, 0);
     Create3DTextLabel("[ مستشفى ]\n/heal", COLOR_WHITE, 1600.0, -1400.0, 13.0, 20.0, 0);
@@ -652,7 +607,7 @@ stock CreateJobCheckpoints() {
 }
 
 // ============================================================
-// SAVE / LOAD SYSTEM (File-based)
+// SAVE / LOAD SYSTEM
 // ============================================================
 public SavePlayer(playerid) {
     new file[64];
@@ -666,34 +621,34 @@ public SavePlayer(playerid) {
     GetPlayerHealth(playerid, hp);
     GetPlayerArmour(playerid, arm);
 
-    INI_WriteString(f, "Password",   PlayerInfo[playerid][pPassword]);
-    INI_WriteInt   (f, "Cash",       PlayerInfo[playerid][pCash]);
-    INI_WriteInt   (f, "Bank",       PlayerInfo[playerid][pBank]);
-    INI_WriteInt   (f, "Job",        PlayerInfo[playerid][pJob]);
-    INI_WriteInt   (f, "JobRank",    PlayerInfo[playerid][pJobRank]);
-    INI_WriteInt   (f, "Faction",    PlayerInfo[playerid][pFaction]);
-    INI_WriteInt   (f, "FactionRank",PlayerInfo[playerid][pFactionRank]);
-    INI_WriteInt   (f, "Level",      PlayerInfo[playerid][pLevel]);
-    INI_WriteInt   (f, "Exp",        PlayerInfo[playerid][pExp]);
-    INI_WriteFloat (f, "Health",     hp);
-    INI_WriteFloat (f, "Armour",     arm);
-    INI_WriteInt   (f, "Hunger",     PlayerInfo[playerid][pHunger]);
-    INI_WriteInt   (f, "Thirst",     PlayerInfo[playerid][pThirst]);
-    INI_WriteInt   (f, "Wanted",     PlayerInfo[playerid][pWanted]);
-    INI_WriteInt   (f, "Skin",       PlayerInfo[playerid][pSkin]);
-    INI_WriteFloat (f, "PosX",       x);
-    INI_WriteFloat (f, "PosY",       y);
-    INI_WriteFloat (f, "PosZ",       z);
-    INI_WriteFloat (f, "PosA",       a);
-    INI_WriteInt   (f, "Interior",   GetPlayerInterior(playerid));
-    INI_WriteInt   (f, "VW",         GetPlayerVirtualWorld(playerid));
-    INI_WriteInt   (f, "Hours",      PlayerInfo[playerid][pHours]);
-    INI_WriteInt   (f, "Admin",      PlayerInfo[playerid][pAdmin]);
-    INI_WriteInt   (f, "VIP",        PlayerInfo[playerid][pVIP]);
-    INI_WriteInt   (f, "PhoneNum",   PlayerInfo[playerid][pPhoneNum]);
-    INI_WriteInt   (f, "Warns",      PlayerInfo[playerid][pWarns]);
-    INI_WriteInt   (f, "IsJailed",   PlayerInfo[playerid][pIsJailed]);
-    INI_WriteInt   (f, "JailTime",   PlayerInfo[playerid][pJailTime]);
+    INI_WriteString(f, "Password",    PlayerInfo[playerid][pPassword]);
+    INI_WriteInt   (f, "Cash",        PlayerInfo[playerid][pCash]);
+    INI_WriteInt   (f, "Bank",        PlayerInfo[playerid][pBank]);
+    INI_WriteInt   (f, "Job",         PlayerInfo[playerid][pJob]);
+    INI_WriteInt   (f, "JobRank",     PlayerInfo[playerid][pJobRank]);
+    INI_WriteInt   (f, "Faction",     PlayerInfo[playerid][pFaction]);
+    INI_WriteInt   (f, "FactionRank", PlayerInfo[playerid][pFactionRank]);
+    INI_WriteInt   (f, "Level",       PlayerInfo[playerid][pLevel]);
+    INI_WriteInt   (f, "Exp",         PlayerInfo[playerid][pExp]);
+    INI_WriteFloat (f, "Health",      hp);
+    INI_WriteFloat (f, "Armour",      arm);
+    INI_WriteInt   (f, "Hunger",      PlayerInfo[playerid][pHunger]);
+    INI_WriteInt   (f, "Thirst",      PlayerInfo[playerid][pThirst]);
+    INI_WriteInt   (f, "Wanted",      PlayerInfo[playerid][pWanted]);
+    INI_WriteInt   (f, "Skin",        PlayerInfo[playerid][pSkin]);
+    INI_WriteFloat (f, "PosX",        x);
+    INI_WriteFloat (f, "PosY",        y);
+    INI_WriteFloat (f, "PosZ",        z);
+    INI_WriteFloat (f, "PosA",        a);
+    INI_WriteInt   (f, "Interior",    GetPlayerInterior(playerid));
+    INI_WriteInt   (f, "VW",          GetPlayerVirtualWorld(playerid));
+    INI_WriteInt   (f, "Hours",       PlayerInfo[playerid][pHours]);
+    INI_WriteInt   (f, "Admin",       PlayerInfo[playerid][pAdmin]);
+    INI_WriteInt   (f, "VIP",         PlayerInfo[playerid][pVIP]);
+    INI_WriteInt   (f, "PhoneNum",    PlayerInfo[playerid][pPhoneNum]);
+    INI_WriteInt   (f, "Warns",       PlayerInfo[playerid][pWarns]);
+    INI_WriteInt   (f, "IsJailed",    PlayerInfo[playerid][pIsJailed]);
+    INI_WriteInt   (f, "JailTime",    PlayerInfo[playerid][pJailTime]);
 
     INI_Close(f);
     return 1;
