@@ -12,10 +12,9 @@ jobs:
 
       - name: Setup Pawn Compiler
         run: |
-          mkdir pawn_compiler
-          cd pawn_compiler
           wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
+          # تأكدنا من المسار الصحيح للملف التنفيذي
           chmod +x bin/pawncc
           echo "$(pwd)/bin" >> $GITHUB_PATH
 
