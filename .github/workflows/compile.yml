@@ -1,0 +1,27 @@
+name: Compile SA-MP
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Pawn Compiler
+        run: |
+          wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
+          tar -xzf pawnc-3.10.10-linux.tar.gz
+          chmod +x pawnc-3.10.10-linux/bin/pawncc
+
+      - name: Compile
+        run: |
+          ./pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -irp_main -o rp_main.amx
+
+      - name: Upload AMX
+        uses: actions/upload-artifact@v3
+        with:
+          name: rp_main_amx
+          path: rp_main.amx
