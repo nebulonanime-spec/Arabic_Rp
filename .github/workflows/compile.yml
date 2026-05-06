@@ -13,41 +13,26 @@ jobs:
 
       - name: Setup and Compile
         run: |
-          # تحميل المترجم
           wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
-
-          # ⚠️ مهم: إعطاء صلاحية التنفيذ
           chmod +x pawnc-3.10.10-linux/bin/pawncc
-
-          # ⚠️ مهم جداً: استخدام مسار كامل (ABSOLUTE PATH)
-          # لا تستخدم ./ لأنه أحياناً يفشل في GitHub Actions
           export LD_LIBRARY_PATH=$(pwd)/pawnc-3.10.10-linux/lib
 
-          # إنشاء مجلد include
           mkdir -p pawno/include
 
-          # ⚠️ مهم جداً:
-          # لازم نسخ ملفات .inc الأساسية من المترجم (مثل core.inc)
-          # بدونها يطلع خطأ:
-          # fatal error: cannot read from file: core
-          find pawnc-3.10.10-linux -name "*.inc" -exec cp {} pawno/include/ \; || true
+          # تحميل core.inc وباقي ملفات pawn الأساسية
+          wget -q -O pawno/include/core.inc https://raw.githubusercontent.com/pawn-lang/compiler/master/include/core.inc || true
+          wget -q -O pawno/include/float.inc https://raw.githubusercontent.com/pawn-lang/compiler/master/include/float.inc || true
+          wget -q -O pawno/include/string.inc https://raw.githubusercontent.com/pawn-lang/compiler/master/include/string.inc || true
+          wget -q -O pawno/include/file.inc https://raw.githubusercontent.com/pawn-lang/compiler/master/include/file.inc || true
 
-          # ⚠️ مهم:
-          # كل wget لازم يكون معه || true
-          # لأنه إذا رابط واحد فشل، البيلد كله يوقف
+          # تحميل مكتبات SA-MP
           wget -q -O pawno/include/a_samp.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_samp.inc || true
           wget -q -O pawno/include/a_mysql.inc https://raw.githubusercontent.com/pBlueG/SA-MP-MySQL/master/include/a_mysql.inc || true
           wget -q -O pawno/include/sscanf2.inc https://raw.githubusercontent.com/Y-Less/sscanf/master/sscanf2.inc || true
           wget -q -O pawno/include/zcmd.inc https://raw.githubusercontent.com/zeex/zcmd/master/zcmd.inc || true
           wget -q -O pawno/include/streamer.inc https://raw.githubusercontent.com/samp-incognito/samp-streamer-plugin/master/include/streamer.inc || true
 
-          # ⚠️ قواعد مهمة جداً لسطر الكومبايل:
-          # 1. استخدم $(pwd)/pawncc وليس ./pawncc
-          # 2. لا تترك مسافة بين -i والمسار
-          # 3. لا تترك مسافة بين -o واسم الملف
-          # 4. لا تضيف أي رموز غريبة مثل -";" أو -"("
-          # 5. المسارات لازم تكون كاملة (FULL PATH)
           $(pwd)/pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -i$(pwd)/pawno/include -o$(pwd)/rp_main.amx
 
       - name: Upload AMX
