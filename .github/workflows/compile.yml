@@ -13,26 +13,26 @@ jobs:
 
       - name: Setup Compiler and Includes
         run: |
-          # 1. إنشاء المجلدات
+          # إنشاء المجلدات الضرورية
           mkdir -p pawno/include/YSI_Storage
           mkdir -p players
           
-          # 2. تحميل المترجم
+          # تحميل المترجم النسخة المستقرة
           wget -q https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
           chmod +x pawnc-3.10.10-linux/bin/pawncc
           export LD_LIBRARY_PATH=$(pwd)/pawnc-3.10.10-linux/lib
 
-          # 3. تحميل كل المكتبات القياسية (لحل مشكلة core و float)
+          # تحميل كل مكتبات سامب الأساسية (لحل خطأ cannot read from file: core)
           git clone --depth 1 https://github.com/pawn-lang/samp-stdlib.git temp_include
           cp -r temp_include/*.inc pawno/include/
           
-          # 4. تحميل المكتبات الإضافية
+          # تحميل المكتبات الإضافية
           wget -q -O pawno/include/sscanf2.inc https://raw.githubusercontent.com/Y-Less/sscanf/master/sscanf2.inc
           wget -q -O pawno/include/zcmd.inc https://raw.githubusercontent.com/zeex/zcmd/master/zcmd.inc
           wget -q -O pawno/include/YSI_Storage/y_ini.inc https://raw.githubusercontent.com/pawn-lang/YSI-Includes/master/YSI_Storage/y_ini.inc
 
-          # 5. التجميع النهائي
+          # عملية التجميع النهائية مع معالجة المسارات
           ./pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -i"pawno/include" -o"rp_main.amx" -";"
 
       - name: Upload AMX
