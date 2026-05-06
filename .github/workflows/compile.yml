@@ -15,17 +15,12 @@ jobs:
         run: |
           wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
-          
-          # عرض الملفات للتأكد
-          ls
-          
-          # إعطاء صلاحية وتشغيل الكومبايلر
-          chmod +x pawnc/bin/pawncc
-          echo "$(pwd)/pawnc/bin" >> $GITHUB_PATH
+          chmod +x pawnc-3.10.10-linux/bin/pawncc
+          echo "$(pwd)/pawnc-3.10.10-linux/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
-          pawncc rp_main.pwn -irp_main -o rp_main.amx
+          pawncc rp_main.pwn -i pawnc-3.10.10-linux/include -o rp_main.amx
 
       - name: Upload AMX
         uses: actions/upload-artifact@v4
