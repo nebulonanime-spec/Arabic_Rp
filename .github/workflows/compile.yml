@@ -19,9 +19,20 @@ jobs:
           echo "$(pwd)/pawnc-3.10.10-linux/bin" >> $GITHUB_PATH
           echo "LD_LIBRARY_PATH=$(pwd)/pawnc-3.10.10-linux/lib" >> $GITHUB_ENV
 
+      - name: Download SA-MP Includes
+        run: |
+          mkdir -p includes
+          wget -O includes/a_samp.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_samp.inc
+          wget -O includes/a_players.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_players.inc
+          wget -O includes/a_objects.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_objects.inc
+          wget -O includes/a_vehicles.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_vehicles.inc
+          wget -O includes/a_npc.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_npc.inc
+          wget -O includes/a_menus.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_menus.inc
+
       - name: Compile
         run: |
-          pawncc rp_main.pwn -i pawnc-3.10.10-linux/include -o rp_main.amx
+          PAWNCC=$(pwd)/pawnc-3.10.10-linux/bin/pawncc
+          $PAWNCC rp_main.pwn -i$(pwd)/includes -i$(pwd)/pawnc-3.10.10-linux/include -o rp_main.amx
 
       - name: Upload AMX
         uses: actions/upload-artifact@v4
