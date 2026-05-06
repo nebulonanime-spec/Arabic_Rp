@@ -17,6 +17,7 @@ jobs:
           tar -xzf pawnc-3.10.10-linux.tar.gz
           chmod +x pawnc-3.10.10-linux/bin/pawncc
           echo "$(pwd)/pawnc-3.10.10-linux/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=$(pwd)/pawnc-3.10.10-linux/lib" >> $GITHUB_ENV
 
       - name: Compile
         run: |
