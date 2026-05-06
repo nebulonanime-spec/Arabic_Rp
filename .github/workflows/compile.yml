@@ -8,7 +8,7 @@ jobs:
   compile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4  # يفضل تحديثها أيضاً لـ v4
 
       - name: Download Pawn Compiler
         run: |
@@ -21,7 +21,7 @@ jobs:
           ./pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -irp_main -o rp_main.amx
 
       - name: Upload AMX
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # هذا هو التعديل الأساسي لحل المشكلة
         with:
           name: rp_main_amx
           path: rp_main.amx
