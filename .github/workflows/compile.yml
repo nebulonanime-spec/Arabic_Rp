@@ -13,30 +13,33 @@ jobs:
 
       - name: Setup and Compile
         run: |
-          wget https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
+          # 1. تحميل المترجم وتجهيزه
+          wget -q https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar -xzf pawnc-3.10.10-linux.tar.gz
-
           chmod +x pawnc-3.10.10-linux/bin/pawncc
-
           export LD_LIBRARY_PATH=$(pwd)/pawnc-3.10.10-linux/lib
-
+          
+          # 2. إنشاء مجلد المكتبات
           mkdir -p pawno/include
+          cp -r pawnc-3.10.10-linux/include/* pawno/include/ 2>/dev/null || true
 
-          # includes تبعتك
-          wget -q -O pawno/include/a_samp.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_samp.inc
-          wget -q -O pawno/include/a_mysql.inc https://raw.githubusercontent.com/pBlueG/SA-MP-MySQL/master/include/a_mysql.inc
-          wget -q -O pawno/include/sscanf2.inc https://raw.githubusercontent.com/Y-Less/sscanf/master/sscanf2.inc
-          wget -q -O pawno/include/zcmd.inc https://raw.githubusercontent.com/zeex/zcmd/master/zcmd.inc
-          wget -q -O pawno/include/streamer.inc https://raw.githubusercontent.com/samp-incognito/samp-streamer-plugin/master/include/streamer.inc
+          # 3. تحميل المكتبات الأساسية (SAMP, MySQL, ZCMD, SSCANF)
+          wget -q -O pawno/include/a_samp.inc https://raw.githubusercontent.com/pawn-lang/samp-stdlib/master/a_samp.inc || true
+          wget -q -O pawno/include/sscanf2.inc https://raw.githubusercontent.com/Y-Less/sscanf/master/sscanf2.inc || true
+          wget -q -O pawno/include/zcmd.inc https://raw.githubusercontent.com/zeex/zcmd/master/zcmd.inc || true
+          
+          # 4. تحميل مكتبة YSI الضرورية للسكريبت تبعك (y_ini)
+          mkdir -p pawno/include/YSI_Storage
+          wget -q -O pawno/include/YSI_Storage/y_ini.inc https://raw.githubusercontent.com/pawn-lang/YSI-Includes/master/YSI_Storage/y_ini.inc || true
+          # تحميل ملفات YSI الأساسية لضمان عملها
+          mkdir -p pawno/include/YSI_Core
+          wget -q -O pawno/include/YSI_Core/y_utils.inc https://raw.githubusercontent.com/pawn-lang/YSI-Includes/master/YSI_Core/y_utils.inc || true
 
-          # 🔥 الحل هنا:
-          # ضفنا include تبع المترجم نفسه
-          $(pwd)/pawnc-3.10.10-linux/bin/pawncc rp_main.pwn \
-          -i$(pwd)/pawno/include \
-          -i$(pwd)/pawnc-3.10.10-linux/include \
-          -o$(pwd)/rp_main.amx
+          # 5. التجميع (Compile)
+          ./pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -i"pawno/include" -o"rp_main.amx" -";" -render
 
       - name: Upload AMX
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: rp_main_amx
