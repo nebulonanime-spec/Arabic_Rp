@@ -20,6 +20,41 @@ jobs:
 
           mkdir -p pawno/include
 
-          wget -q https://github.com/pawn-lang/compiler/archive/refs/heads/master.zip -O compiler.zip
-          unzip -q compiler.zip
-          cp compiler-master/in
+          # samp-stdlib (a_samp, core, time, float, etc)
+          wget -q https://github.com/pawn-lang/samp-stdlib/archive/refs/heads/master.zip -O samp.zip
+          unzip -q samp.zip
+          cp samp-stdlib-master/*.inc pawno/include/ || true
+
+          # YSI (y_ini)
+          wget -q https://github.com/pawn-lang/YSI-Includes/archive/refs/heads/master.zip -O ysi.zip
+          unzip -q ysi.zip
+          cp -r YSI-Includes-master/YSI_Storage pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Core pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Coding pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Internal pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Data pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Extra pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Game pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Players pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Server pawno/include/ || true
+          cp -r YSI-Includes-master/YSI_Visual pawno/include/ || true
+
+          # sscanf2
+          wget -q -O pawno/include/sscanf2.inc https://raw.githubusercontent.com/Y-Less/sscanf/master/sscanf2.inc || true
+
+          # zcmd
+          wget -q -O pawno/include/zcmd.inc https://raw.githubusercontent.com/zeex/zcmd/master/zcmd.inc || true
+
+          # streamer
+          wget -q -O pawno/include/streamer.inc https://raw.githubusercontent.com/samp-incognito/samp-streamer-plugin/master/include/streamer.inc || true
+
+          # a_mysql
+          wget -q -O pawno/include/a_mysql.inc https://raw.githubusercontent.com/pBlueG/SA-MP-MySQL/master/include/a_mysql.inc || true
+
+          $(pwd)/pawnc-3.10.10-linux/bin/pawncc rp_main.pwn -i$(pwd)/pawno/include -o$(pwd)/rp_main.amx
+
+      - name: Upload AMX
+        uses: actions/upload-artifact@v4
+        with:
+          name: rp_main_amx
+          path: rp_main.amx
